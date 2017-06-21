@@ -1,6 +1,7 @@
 # Import libraries and functions
 from tkinter.filedialog import askopenfilename
-import csv, openpyxl
+import csv
+import openpyxl
 import datetime as dt
 from openpyxl import Workbook
 from openpyxl.compat import range
@@ -33,8 +34,9 @@ ws1.title = "Raw Data"
 for row_index, row in enumerate(reader):
     for column_index, cell in enumerate(row):
         column_letter = get_column_letter((column_index + 1))
-        ws1.cell('%s%s'%(column_letter, (row_index + 1))).value = cell
+        ws1['%s%s' % (column_letter, (row_index + 1))].value = cell
 
-ws2 = wb.create_sheet(title='')
+ws2 = wb.create_sheet(title='Concentration Data')
+ws2['F5'] = 3.14
 
-wb.save(filename = dest_filename)
+wb.save(filename=dest_filename)
