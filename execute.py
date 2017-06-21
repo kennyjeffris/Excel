@@ -1,2 +1,37 @@
-import openpyxl
-print('Opening workbook')
+# Import libraries and functions
+from tkinter.filedialog import askopenfilename
+import csv, openpyxl
+import datetime as dt
+from openpyxl import Workbook
+from openpyxl.compat import range
+from openpyxl.utils import get_column_letter
+from os.path import split, join
+
+##############################################
+# Open the file to format.
+filename = askopenfilename()
+f = open(filename)
+# Change this when implementing into program
+##############################################
+
+
+
+csv.register_dialect('comma', delimiter=',')
+
+reader = csv.reader(f, dialect='comma')
+
+wb = Workbook()
+(new, extra) = split(filename)
+newName = 'blah.xlsx'
+print(new)
+dest_filename = join(new, newName)
+
+ws1 = wb.worksheets[0]
+ws1.title = "Raw Data"
+
+for row_index, row in enumerate(reader):
+    for column_index, cell in enumerate(row):
+        column_letter = get_column_letter((column_index + 1))
+        ws1.cell('%s%s'%(column_letter, (row_index + 1))).value = cell
+
+wb.save(filename = dest_filename)
