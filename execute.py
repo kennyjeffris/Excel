@@ -74,40 +74,56 @@ for index, row in enumerate(iterable=ws1.iter_rows(min_row=2, max_row=5,
     for cell in row:
         analyteOrder.append(cell.value)
 
-headerList = ['Sample', 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
-              'RFU', 'RFUPercentCV', 'GNR1Signal',	'GNR2Signal', 'GNR3Signal',
-              'Signal', 'Gnr1CalculatedConcentration',
-              'Gnr2CalculatedConcentration',
-              'Gnr3CalculatedConcentration', 'CalculatedConcentration',
-              'CalculatedConcentrationPercentCV']
+headerList1 = ['Sample', 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
+               'RFU', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
+               'Signal', 'Gnr1CalculatedConcentration',
+               'Gnr2CalculatedConcentration',
+               'Gnr3CalculatedConcentration', 'CalculatedConcentration',
+               'CalculatedConcentrationPercentCV']
+
+headerList2 = ['Sample', 'Gnr1CalculatedConcentration',
+               'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration',
+               'CalculatedConcentrationPercentCV']
 
 ########################################
 # Populate Summary1
-ws2 = wb.create_sheet(title='Summary1')
-for i in range(0, 4):
-    analyteString = 'Analyte {} ({})'.format(i+1, analyteOrder[i])
-    startRow = i*20+1
-    ws2['A{}'.format(startRow)] = analyteString
-    for index, col in enumerate(iterable=ws2.iter_cols(min_row=startRow+1,
-                                min_col=1, max_row=startRow+1,
-                                max_col=len(headerList))):
-        for cell in col:
-            cell.value = headerList[index]
+ws2 = wb.create_sheet(title='Summary 1')
+ws3 = wb.create_sheet(title='Summary 2')
 
-    for index, row in enumerate(iterable=ws2.iter_rows(min_row=startRow+2,
-                                max_col=1, max_row=startRow+17)):
-        for cell in row:
-            cell.value = index+1
+for i in range(1, 3):
+    if (i == 1):
+        workingSheet = ws2
+        headerList = headerList1
+    else:
+        workingSheet = ws3
+        headerList = headerList2
+    for i in range(0, 4):
+        analyteString = 'Analyte {} ({})'.format(i+1, analyteOrder[i])
+        startRow = i*20+1
+        workingSheet['A{}'.format(startRow)] = analyteString
+        for index, col in enumerate(iterable=workingSheet.iter_cols(
+                                        min_row=startRow+1,
+                                        min_col=1, max_row=startRow+1,
+                                        max_col=len(headerList))):
+            for cell in col:
+                cell.value = headerList[index]
 
-    for index, col in enumerate(iterable=ws2.iter_cols(min_col=2,
-                                                       max_col=len(headerList)-1)):
-        feature = headerList[index + 1]
-        values = getItems(ws1, i+1, feature)
-        for index2, row in enumerate(iterable=ws2.iter_rows(min_col=index+2,
-                                                            min_row=startRow+2,
-                                                            max_row=startRow+17)):
+        for index, row in enumerate(iterable=workingSheet.iter_rows(
+                                        min_row=startRow+2,
+                                        max_col=1, max_row=startRow+17)):
             for cell in row:
-                cell.value = values[index2]
+                cell.value = index+1
+
+        for index, col in enumerate(iterable=workingSheet.iter_cols(
+                                        min_col=2, max_col=len(headerList)-1)):
+            feature = headerList[index + 1]
+            values = getItems(ws1, i+1, feature)
+            for index2, row in enumerate(iterable=workingSheet.iter_rows(
+                                            min_col=index+2,
+                                            min_row=startRow+2,
+                                            max_row=startRow+17)):
+                for cell in row:
+                    cell.value = values[index2]
 ########################################
 
 wb.save(filename=dest_filename)
