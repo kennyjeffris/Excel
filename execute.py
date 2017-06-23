@@ -1,11 +1,17 @@
+"""
+Script to format csv file.
+
+Author: Kenny Jeffris
+"""
+
+##############################################
 # Import libraries and functions
 import csv
 import string
-import openpyxl
-import datetime as dt
 from openpyxl import Workbook
 from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
+from openpyxl.styles.borders import Border, Side
 from os.path import split, join
 
 ##############################################
@@ -14,6 +20,21 @@ filename = 'C:\\Users\\kjeffris\\My Documents\\Excel\\export.csv'
 f = open(filename)
 # Change this when implementing into program
 ##############################################
+# Create Style variable
+medium = Border(left=Side(style='medium'),
+                right=Side(style='medium'),
+                top=Side(style='medium'),
+                bottom=Side(style='medium'))
+
+thin = Border(left=Side(style='thin'),
+              right=Side(style='thin'),
+              top=Side(style='thin'),
+              bottom=Side(style='thin'))
+
+medium_thinbottom = Border(left=Side(style='medium'),
+                           right=Side(style='medium'),
+                           top=Side(style='thin'),
+                           bottom=Side(style='thin'))
 
 ##############################################
 # Helper functions
@@ -39,14 +60,24 @@ def getItems(sheet, analyte, feature):
             item = []
             for i in range(analyte, 65, 4):
                 index = column_letter + str(i + 1)
-                item.append(sheet[index].value)
+                try:
+                    item.append(float(sheet[index].value))
+                except Exception:
+                    item.append('')
             done = True
             return item
         count += 1
     return []
 
 
-#############################################
+def as_text(value):
+    """Return the input as a string."""
+    if value is None:
+        return ""
+    return str(value)
+
+
+##############################################
 # Set up CSV tools
 csv.register_dialect('comma', delimiter=',')
 reader = csv.reader(f, dialect='comma')
@@ -61,13 +92,13 @@ dest_filename = join(new, newName)
 ws1 = wb.worksheets[0]
 ws1.title = "Raw Data"
 
-########################################
+##############################################
 # Copy Raw Data to sheet1
 for row_index, row in enumerate(reader):
     for column_index, cell in enumerate(row):
         column_letter = get_column_letter((column_index + 1))
         ws1['%s%s' % (column_letter, (row_index + 1))].value = cell
-########################################
+##############################################
 analyteOrder = []
 for index, row in enumerate(iterable=ws1.iter_rows(min_row=2, max_row=5,
                                                    max_col=1)):
@@ -85,13 +116,15 @@ headerList2 = ['Sample', 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
-########################################
-# Populate Summary1
+headerList3 = (analyteOrder[:])
+headerList3.insert(0, 'Sample')
+##############################################
+# Populate Summary 1 and Summary 2
 ws2 = wb.create_sheet(title='Summary 1')
 ws3 = wb.create_sheet(title='Summary 2')
 
-for i in range(1, 3):
-    if (i == 1):
+for page in range(1, 3):
+    if (page == 1):
         workingSheet = ws2
         headerList = headerList1
     else:
@@ -107,15 +140,20 @@ for i in range(1, 3):
                                         max_col=len(headerList))):
             for cell in col:
                 cell.value = headerList[index]
+                cell.border = medium
+                if (i == 0):
+                    length = len(as_text(cell.value)) + 2
+                    workingSheet.column_dimensions[cell.column].width = length
 
         for index, row in enumerate(iterable=workingSheet.iter_rows(
                                         min_row=startRow+2,
                                         max_col=1, max_row=startRow+17)):
             for cell in row:
                 cell.value = index+1
+                cell.border = medium_thinbottom
 
         for index, col in enumerate(iterable=workingSheet.iter_cols(
-                                        min_col=2, max_col=len(headerList)-1)):
+                                        min_col=2, max_col=len(headerList))):
             feature = headerList[index + 1]
             values = getItems(ws1, i+1, feature)
             for index2, row in enumerate(iterable=workingSheet.iter_rows(
@@ -124,6 +162,36 @@ for i in range(1, 3):
                                             max_row=startRow+17)):
                 for cell in row:
                     cell.value = values[index2]
-########################################
+                    cell.border = thin
+##############################################
+# Populate Summary 3
+ws4 = wb.create_sheet(title='Summary 3')
+ws4['A1'].value = 'CalculatedConcentration'
+for index, col in enumerate(iterable=ws4.iter_cols(
+                                min_row=2,
+                                min_col=1, max_row=2,
+                                max_col=len(headerList3))):
+    for cell in col:
+        cell.value = headerList3[index]
+        cell.border = medium
 
+for index, row in enumerate(iterable=ws4.iter_rows(
+                                min_row=3,
+                                max_col=1, max_row=18)):
+    for cell in row:
+        cell.value = index+1
+        cell.border = medium_thinbottom
+
+for index, col in enumerate(iterable=ws4.iter_cols(
+                                min_col=2, max_col=len(headerList))):
+    values = getItems(ws1, index+1, ws4['A1'].value)
+    for index2, row in enumerate(iterable=ws4.iter_rows(
+                                    min_col=index+2,
+                                    min_row=3,
+                                    max_row=18)):
+        for cell in row:
+            cell.value = values[index2]
+            cell.border = thin
+##############################################
+# Save the resulting file
 wb.save(filename=dest_filename)
