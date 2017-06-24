@@ -90,7 +90,7 @@ dest_filename = join(new, newName)
 
 # Create first sheet
 ws1 = wb.worksheets[0]
-ws1.title = "Raw Data"
+ws1.title = 'Raw data'
 
 ##############################################
 # Copy Raw Data to sheet1
@@ -118,6 +118,11 @@ headerList2 = ['Sample', 'Gnr1CalculatedConcentration',
 
 headerList3 = (analyteOrder[:])
 headerList3.insert(0, 'Sample')
+
+headerList4 = ['CalculatedConcentration', 'CurveCoefficientA',
+               'CurveCoefficientB', 'CurveCoefficientC', 'CurveCoefficientG']
+
+headerList5 = ['Curve Coefficients', 'A', 'B', 'C', 'D', 'G']
 ##############################################
 # Populate Summary 1 and Summary 2
 ws2 = wb.create_sheet(title='Summary 1')
@@ -166,7 +171,7 @@ for page in range(1, 3):
 ##############################################
 # Populate Summary 3
 ws4 = wb.create_sheet(title='Summary 3')
-ws4['A1'].value = 'CalculatedConcentration'
+ws4['A1'].value = headerList4[0]
 for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_row=2,
                                 min_col=1, max_row=2,
@@ -183,8 +188,9 @@ for index, row in enumerate(iterable=ws4.iter_rows(
         cell.border = medium_thinbottom
 
 for index, col in enumerate(iterable=ws4.iter_cols(
-                                min_col=2, max_col=len(headerList))):
-    values = getItems(ws1, index+1, ws4['A1'].value)
+                                min_col=2, max_col=len(headerList3))):
+
+    values = getItems(ws1, index+1, headerList4[index])
     for index2, row in enumerate(iterable=ws4.iter_rows(
                                     min_col=index+2,
                                     min_row=3,
@@ -192,6 +198,21 @@ for index, col in enumerate(iterable=ws4.iter_cols(
         for cell in row:
             cell.value = values[index2]
             cell.border = thin
+
+ws4['A20'].value = headerList5[0]
+ws4['A21'].border = medium
+for index, col in enumerate(iterable=ws4.iter_cols(min_row=21,
+                            min_col=2, max_row=21, max_col=5)):
+    for cell in col:
+        cell.value = headerList3[index + 1]
+        cell.border = medium
+
+for index, row in enumerate(iterable=ws4.iter_rows(min_row=22, max_row=26,
+                                                   min_col=1, max_col=1)):
+    for cell in row:
+        cell.value = headerList5[index + 1]
+        cell.border = medium_thinbottom
+
 ##############################################
 # Save the resulting file
 wb.save(filename=dest_filename)

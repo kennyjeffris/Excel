@@ -1,2 +1,6 @@
 gilead.xls
 ~*.xlsx
+output.xlsx
+*.exe
+*.dll
+*.build
