@@ -6,6 +6,7 @@ Author: Kenny Jeffris
 
 ##############################################
 # Import libraries and functions
+import sys
 import csv
 import string
 from openpyxl import Workbook
@@ -13,12 +14,12 @@ from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart import LineChart, Reference
-# from os.path import split, join
 import easygui
 ##############################################
 # Open the file to format.
-filename = easygui.fileopenbox(msg='Choose your data file.',
-                               filetypes=['*.csv'])
+filename = easygui.fileopenbox(msg='Choose your data files',
+                               multiple=False, filetypes=['*.csv'],
+                               default='*.csv')
 # filename = 'C:\\Users\\kjeffris\\My Documents\\Excel\\export.csv'
 f = open(filename)
 # Change this when implementing into program
@@ -54,23 +55,30 @@ def col2num(col):
 
 def getItems(sheet, analyte, feature):
     """Get the items in a column of a request sheet."""
-    done = False
-    count = 1
-    while (not done):
-        column_letter = get_column_letter(count)
-        index = column_letter + '1'
-        if feature == sheet[index].value:
-            item = []
-            for i in range(analyte, 65, 4):
-                index = column_letter + str(i + 1)
-                try:
-                    item.append(float(sheet[index].value))
-                except Exception:
-                    item.append('')
-            done = True
-            return item
-        count += 1
-    return []
+    try:
+        done = False
+        count = 1
+        while (not done):
+            column_letter = get_column_letter(count)
+            index = column_letter + '1'
+            if feature == sheet[index].value:
+                item = []
+                for i in range(analyte, 65, 4):
+                    index = column_letter + str(i + 1)
+                    try:
+                        item.append(float(sheet[index].value))
+                    except Exception:
+                        item.append('')
+                done = True
+                return item
+            count += 1
+            if count == 100:
+                raise ValueError('Item not found')
+    except ValueError as error:
+        easygui.msgbox(msg="Missing item {}.  Please export your data with "
+                       "this item included".format(feature), title="Failure",
+                       ok_button="OK")
+        sys.exit()
 
 
 def as_text(value):
@@ -99,11 +107,7 @@ reader = csv.reader(f, dialect='comma')
 
 # Initialize .xlsx file
 wb = Workbook()
-# (new, extra) = split(filename)
-newName = 'output.xlsx'
-# dest_filename = join(new, newName)
-dest_filename = easygui.filesavebox(msg='Save File.', default='output.xlsx',
-                                    filetypes=['*.xlsx'])
+
 # Create first sheet
 ws1 = wb.worksheets[0]
 ws1.title = 'Raw data'
@@ -245,4 +249,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             cell.border = thin
 ##############################################
 # Save the resulting file
+newName = 'output.xlsx'
+dest_filename = easygui.filesavebox(msg='Save File.', default=newName,
+                                    filetypes=['*.xlsx'])
 wb.save(filename=dest_filename)
