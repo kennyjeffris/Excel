@@ -248,6 +248,9 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             cell.value = values[0]
             cell.border = thin
 ##############################################
+# Add plots to Summary 3
+
+##############################################
 # Save the resulting file
 newName = 'output.xlsx'
 dest_filename = easygui.filesavebox(msg='Save File.', default=newName,
