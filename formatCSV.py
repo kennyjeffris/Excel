@@ -13,8 +13,9 @@ from openpyxl import Workbook
 from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from openpyxl.styles.borders import Border, Side
-from openpyxl.chart import LineChart, Reference
+from openpyxl.chart import LineChart, ScatterChart, Reference, Series
 import easygui
+import numpy as np
 ##############################################
 # Open the file to format.
 filename = easygui.fileopenbox(msg='Choose your data files',
@@ -249,7 +250,61 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             cell.border = thin
 ##############################################
 # Add plots to Summary 3
-
+for index, col in enumerate(iterable=ws4.iter_cols(
+                                min_col=2,
+                                max_col=5)):
+    coeffs = []
+    let = get_column_letter(2+index)
+    for index2, row in enumerate(iterable=ws4.iter_rows(
+                                    range_string='{}22:{}26'.format(let,
+                                                                    let))):
+        for cell in row:
+            coeffs.append(cell.value)
+    xvalues = []
+    values = []
+    for index3, row in enumerate(iterable=ws4.iter_rows(
+                                    min_row=3,
+                                    max_row=18,
+                                    min_col=2+index,
+                                    max_col=2+index)):
+        for cell in row:
+            xval = cell.value
+            if isinstance(xval, float) and not np.isnan(xval):
+                xvalues.append(xval)
+                yval = (coeffs[0]*(xval**4)) + (coeffs[1]*(xval**3)) + \
+                       (coeffs[2]*(xval**2)) + (coeffs[3]*(xval**1)) + \
+                       (coeffs[4]*(xval**0))
+                values.append(yval)
+    count1 = 0
+    count2 = 0
+    for index4, row in enumerate(iterable=ws4.iter_rows(
+                            range_string='{}28:{}60'.format(let, let))):
+        for cell in row:
+            if (count1 < len(xvalues)):
+                cell.value = xvalues[count1]
+                count1 += 1
+            elif(count1 >= len(values) and count2 < len(values)):
+                cell.value = values[count2]
+                count2 += 1
+            else:
+                break
+    xref = Reference(ws4, min_col=2+index, max_col=2+index,
+                     min_row=28, max_row=28+len(xvalues))
+    yref = Reference(ws4, min_col=2+index, max_col=2+index,
+                     min_row=29+len(xvalues),
+                     max_row=29+len(xvalues)+len(values))
+    # xvalues.insert(0, 'X')
+    # values.insert(0, 'Y')
+    chart = ScatterChart()
+    chart.title = 'Test'
+    chart.style = 13
+    chart.y_axis.title = 'Y'
+    chart.x_axis.title = 'X'
+    chart.x_axis.scaling.logBase = 10
+    chart.y_axis.scaling.logBase = 10
+    series = Series(yref, xref, title_from_data=False)
+    chart.series.append(series)
+    ws4.add_chart(chart, 'H4')
 ##############################################
 # Save the resulting file
 newName = 'output.xlsx'
