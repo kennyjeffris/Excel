@@ -6,7 +6,11 @@ import sys
 os.environ['TCL_LIBRARY'] = r'C:\Python\Python36\tcl\tcl8.6'
 os.environ['TK_LIBRARY'] = r'C:\Python\Python36\tcl\tk8.6'
 
-buildOptions = {"include_files": ["tcl86t.dll", "tk86t.dll"]}
+Include_Modules = [
+    "numpy.core._methods", "numpy.lib.format"
+]
+
+buildOptions = {"includes": Include_Modules, "include_files": ["tcl86t.dll", "tk86t.dll", "proteinsimple_logo_bt.ico"]}
 
 base = 'Win32GUI' if sys.platform == 'win32' else None
 

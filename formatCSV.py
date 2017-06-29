@@ -14,6 +14,7 @@ from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart import LineChart, ScatterChart, Reference, Series, marker
+from openpyxl.chart.layout import Layout, ManualLayout
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -302,6 +303,14 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     chart = ScatterChart()
     # Format Chart
     chart.legend = None
+    chart.layout = Layout(
+        manualLayout=ManualLayout(
+            x=0, y=0.9,
+            h=0.9, w=0.9,
+            xMode='edge',
+            yMode='edge'
+        )
+    )
     chart.title = headerList3[index + 1]
     chart.style = 13
     chart.x_axis.scaling.logBase = 10
