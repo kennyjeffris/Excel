@@ -13,15 +13,17 @@ from openpyxl import Workbook
 from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from openpyxl.styles.borders import Border, Side
-from openpyxl.chart import LineChart, ScatterChart, Reference, Series
-import easygui
+from openpyxl.chart import LineChart, ScatterChart, Reference, Series, marker
 import numpy as np
+import tkinter as tk
+from tkinter import filedialog, messagebox
 ##############################################
 # Open the file to format.
-filename = easygui.fileopenbox(msg='Choose your data files',
-                               multiple=False, filetypes=['*.csv'],
-                               default='*.csv')
-# filename = 'C:\\Users\\kjeffris\\My Documents\\Excel\\export.csv'
+root = tk.Tk()
+root.withdraw()
+root.iconbitmap('proteinsimple_logo_bt.ico')
+filename = filedialog.askopenfilename(title='Choose your data files',
+                               multiple=False, filetypes=(("csv files","*.csv"),("all files","*.*")))
 f = open(filename)
 # Change this when implementing into program
 ##############################################
@@ -59,7 +61,7 @@ def getItems(sheet, analyte, feature):
     try:
         done = False
         count = 1
-        while (not done):
+        while not done:
             column_letter = get_column_letter(count)
             index = column_letter + '1'
             if feature == sheet[index].value:
@@ -76,7 +78,7 @@ def getItems(sheet, analyte, feature):
             if count == 100:
                 raise ValueError('Item not found')
     except ValueError as error:
-        easygui.msgbox(msg="Missing item {}.  Please export your data with "
+        messagebox.showerror(message="Missing item {}.  Please export your data with "
                        "this item included".format(feature), title="Failure",
                        ok_button="OK")
         sys.exit()
@@ -271,14 +273,16 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             xval = cell.value
             if isinstance(xval, float) and not np.isnan(xval):
                 xvalues.append(xval)
-                yval = (coeffs[0]*(xval**4)) + (coeffs[1]*(xval**3)) + \
-                       (coeffs[2]*(xval**2)) + (coeffs[3]*(xval**1)) + \
-                       (coeffs[4]*(xval**0))
+                yval = coeffs[3] + ((coeffs[0] - coeffs[3]) /
+                       ((1 + (xval / coeffs[2])**coeffs[1])**coeffs[4]))
                 values.append(yval)
+    sorted_lists = sorted(zip(xvalues, values), reverse=False,
+                          key=lambda x: x[0])
+    xvalues, values = [[x[i] for x in sorted_lists] for i in range(2)]
     count1 = 0
     count2 = 0
     for index4, row in enumerate(iterable=ws4.iter_rows(
-                            range_string='{}28:{}60'.format(let, let))):
+                            range_string='{}29:{}61'.format(let, let))):
         for cell in row:
             if (count1 < len(xvalues)):
                 cell.value = xvalues[count1]
@@ -289,25 +293,37 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             else:
                 break
     xref = Reference(ws4, min_col=2+index, max_col=2+index,
-                     min_row=28, max_row=28+len(xvalues))
+                     min_row=29, max_row=28+len(xvalues))
     yref = Reference(ws4, min_col=2+index, max_col=2+index,
                      min_row=29+len(xvalues),
-                     max_row=29+len(xvalues)+len(values))
-    # xvalues.insert(0, 'X')
-    # values.insert(0, 'Y')
+                     max_row=28+len(xvalues)+len(values))
+
+    # Create Chart
     chart = ScatterChart()
-    chart.title = 'Test'
+    # Format Chart
+
+    chart.title = headerList3[index + 1]
     chart.style = 13
-    chart.y_axis.title = 'Y'
-    chart.x_axis.title = 'X'
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
+    chart.x_axis.crossesAt = 0.01
+    chart.y_axis.crossesAt = 0.01
+    chart.x_axis.scaling.min = 0.01
+    chart.y_axis.scaling.min = 0.01
+    chart.x_axis.scaling.max = 10000
+    chart.y_axis.scaling.max = 10000
+    chart.y_axis.title = 'Y'
+    chart.x_axis.title = 'Concentration (pg/mL)'
+    # Add data
     series = Series(yref, xref, title_from_data=False)
+    series.marker = marker.Marker('x')
+    # series.graphicalProperties.line.noFill = True
     chart.series.append(series)
-    ws4.add_chart(chart, 'H4')
+    ws4.add_chart(chart, 'H{}'.format((index*15 + 1)))
+
 ##############################################
 # Save the resulting file
 newName = 'output.xlsx'
-dest_filename = easygui.filesavebox(msg='Save File.', default=newName,
-                                    filetypes=['*.xlsx'])
+dest_filename = filedialog.asksaveasfilename(title='Save File.', initialfile=newName,
+                                    filetypes=(("xlsx files","*.xlsx"),("all files","*.*")))
 wb.save(filename=dest_filename)
