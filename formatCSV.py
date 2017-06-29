@@ -22,7 +22,7 @@ from tkinter import filedialog, messagebox
 root = tk.Tk()
 root.withdraw()
 root.iconbitmap('proteinsimple_logo_bt.ico')
-filename = filedialog.askopenfilename(title='Choose your data files',
+filename = filedialog.askopenfilename(title='Choose your data file',
                                multiple=False, filetypes=(("csv files","*.csv"),("all files","*.*")))
 f = open(filename)
 # Change this when implementing into program
@@ -79,8 +79,7 @@ def getItems(sheet, analyte, feature):
                 raise ValueError('Item not found')
     except ValueError as error:
         messagebox.showerror(message="Missing item {}.  Please export your data with "
-                       "this item included".format(feature), title="Failure",
-                       ok_button="OK")
+                       "this item included".format(feature), title="Failure")
         sys.exit()
 
 
@@ -252,6 +251,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             cell.border = thin
 ##############################################
 # Add plots to Summary 3
+ws4['A28'].value = 'Sorted Plot Data'
 for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_col=2,
                                 max_col=5)):
@@ -301,23 +301,24 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     # Create Chart
     chart = ScatterChart()
     # Format Chart
-
+    chart.legend = None
     chart.title = headerList3[index + 1]
     chart.style = 13
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
-    chart.x_axis.crossesAt = 0.01
-    chart.y_axis.crossesAt = 0.01
     chart.x_axis.scaling.min = 0.01
     chart.y_axis.scaling.min = 0.01
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000
+    chart.x_axis.crossesAt = 0.01
+    chart.y_axis.crossesAt = 0.01
     chart.y_axis.title = 'Y'
     chart.x_axis.title = 'Concentration (pg/mL)'
     # Add data
     series = Series(yref, xref, title_from_data=False)
-    series.marker = marker.Marker('x')
-    # series.graphicalProperties.line.noFill = True
+    series.marker = marker.Marker('diamond')
+    series.marker.size = 10
+    series.graphicalProperties.line.noFill = True
     chart.series.append(series)
     ws4.add_chart(chart, 'H{}'.format((index*15 + 1)))
 
