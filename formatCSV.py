@@ -14,17 +14,15 @@ from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart import LineChart, ScatterChart, Reference, Series, marker
-from openpyxl.chart.layout import Layout, ManualLayout
+import easygui
 import numpy as np
-import tkinter as tk
-from tkinter import filedialog, messagebox
+# from itertools import zip
 ##############################################
 # Open the file to format.
-root = tk.Tk()
-root.withdraw()
-root.iconbitmap('proteinsimple_logo_bt.ico')
-filename = filedialog.askopenfilename(title='Choose your data file',
-                               multiple=False, filetypes=(("csv files","*.csv"),("all files","*.*")))
+filename = easygui.fileopenbox(msg='Choose your data files',
+                               multiple=False, filetypes=['*.csv'],
+                               default='*.csv')
+# filename = 'C:\\Users\\kjeffris\\My Documents\\Excel\\export.csv'
 f = open(filename)
 # Change this when implementing into program
 ##############################################
@@ -62,7 +60,7 @@ def getItems(sheet, analyte, feature):
     try:
         done = False
         count = 1
-        while not done:
+        while (not done):
             column_letter = get_column_letter(count)
             index = column_letter + '1'
             if feature == sheet[index].value:
@@ -79,8 +77,9 @@ def getItems(sheet, analyte, feature):
             if count == 100:
                 raise ValueError('Item not found')
     except ValueError as error:
-        messagebox.showerror(message="Missing item {}.  Please export your data with "
-                       "this item included".format(feature), title="Failure")
+        easygui.msgbox(msg="Missing item {}.  Please export your data with "
+                       "this item included".format(feature), title="Failure",
+                       ok_button="OK")
         sys.exit()
 
 
@@ -128,16 +127,21 @@ for index, row in enumerate(iterable=ws1.iter_rows(min_row=2, max_row=5,
     for cell in row:
         analyteOrder.append(cell.value)
 
-headerList1 = ['Sample', 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
+searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                'RFU', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
                'Signal', 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration',
                'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
-headerList2 = ['Sample', 'Gnr1CalculatedConcentration',
-               'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration',
+headerList1 = ['Sample', 'Bkgd', 'Gnr1', 'Gnr2', 'Avg', '% CV', 'Gnr1', 'Gnr2',
+             'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
+
+searchList2 = ['Gnr1CalculatedConcentration',
+               'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
+
+headerList2 = ['Sample', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
 headerList3 = (analyteOrder[:])
 headerList3.insert(0, 'Sample')
@@ -156,9 +160,11 @@ for page in range(1, 3):
     if (page == 1):
         workingSheet = ws2
         headerList = headerList1
+        searchList = searchList1
     else:
         workingSheet = ws3
         headerList = headerList2
+        searchList = searchList2
     for i in range(0, 4):
         analyteString = 'Analyte {} ({})'.format(i+1, analyteOrder[i])
         startRow = i*20+1
@@ -183,7 +189,7 @@ for page in range(1, 3):
 
         for index, col in enumerate(iterable=workingSheet.iter_cols(
                                         min_col=2, max_col=len(headerList))):
-            feature = headerList[index + 1]
+            feature = searchList[index]
             values = getItems(ws1, i+1, feature)
             for index2, row in enumerate(iterable=workingSheet.iter_rows(
                                             min_col=index+2,
@@ -252,7 +258,6 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             cell.border = thin
 ##############################################
 # Add plots to Summary 3
-ws4['A28'].value = 'Sorted Plot Data'
 for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_col=2,
                                 max_col=5)):
@@ -274,8 +279,8 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             xval = cell.value
             if isinstance(xval, float) and not np.isnan(xval):
                 xvalues.append(xval)
-                yval = coeffs[3] + ((coeffs[0] - coeffs[3]) /
-                       ((1 + (xval / coeffs[2])**coeffs[1])**coeffs[4]))
+                yval = coeffs[3] + (coeffs[0] - coeffs[3]) / \
+                       ((1 + (xval / coeffs[2])**coeffs[1])**coeffs[1])
                 values.append(yval)
     sorted_lists = sorted(zip(xvalues, values), reverse=False,
                           key=lambda x: x[0])
@@ -283,7 +288,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     count1 = 0
     count2 = 0
     for index4, row in enumerate(iterable=ws4.iter_rows(
-                            range_string='{}29:{}61'.format(let, let))):
+                            range_string='{}28:{}60'.format(let, let))):
         for cell in row:
             if (count1 < len(xvalues)):
                 cell.value = xvalues[count1]
@@ -294,46 +299,32 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             else:
                 break
     xref = Reference(ws4, min_col=2+index, max_col=2+index,
-                     min_row=29, max_row=28+len(xvalues))
+                     min_row=28, max_row=28+len(xvalues))
     yref = Reference(ws4, min_col=2+index, max_col=2+index,
                      min_row=29+len(xvalues),
-                     max_row=28+len(xvalues)+len(values))
-
-    # Create Chart
+                     max_row=29+len(xvalues)+len(values))
+    # xvalues.insert(0, 'X')
+    # values.insert(0, 'Y')
     chart = ScatterChart()
-    # Format Chart
-    chart.legend = None
-    chart.layout = Layout(
-        manualLayout=ManualLayout(
-            x=0, y=0.9,
-            h=0.9, w=0.9,
-            xMode='edge',
-            yMode='edge'
-        )
-    )
-    chart.title = headerList3[index + 1]
+    chart.title = 'Test'
     chart.style = 13
+    chart.y_axis.title = 'Y'
+    chart.x_axis.title = 'X'
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
     chart.x_axis.scaling.min = 0.01
     chart.y_axis.scaling.min = 0.01
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000
-    chart.x_axis.crossesAt = 0.01
-    chart.y_axis.crossesAt = 0.01
-    chart.y_axis.title = 'Y'
-    chart.x_axis.title = 'Concentration (pg/mL)'
-    # Add data
     series = Series(yref, xref, title_from_data=False)
-    series.marker = marker.Marker('diamond')
-    series.marker.size = 10
+    series.marker = marker.Marker('x')
     series.graphicalProperties.line.noFill = True
     chart.series.append(series)
-    ws4.add_chart(chart, 'H{}'.format((index*15 + 1)))
+    ws4.add_chart(chart, 'H4')
 
 ##############################################
 # Save the resulting file
 newName = 'output.xlsx'
-dest_filename = filedialog.asksaveasfilename(title='Save File.', initialfile=newName,
-                                    filetypes=(("xlsx files","*.xlsx"),("all files","*.*")))
+dest_filename = easygui.filesavebox(msg='Save File.', default=newName,
+                                    filetypes=['*.xlsx'])
 wb.save(filename=dest_filename)
