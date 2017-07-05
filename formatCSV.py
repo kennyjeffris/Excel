@@ -12,19 +12,23 @@ import string
 from openpyxl import Workbook
 from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import Alignment, PatternFill, colors
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart import LineChart, ScatterChart, Reference, Series, marker
-import easygui
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter import messagebox
+import tkinter as tk
 import numpy as np
-# from itertools import zip
+
 ##############################################
 # Open the file to format.
-filename = easygui.fileopenbox(msg='Choose your data files',
-                               multiple=False, filetypes=['*.csv'],
-                               default='*.csv')
-# filename = 'C:\\Users\\kjeffris\\My Documents\\Excel\\export.csv'
+root = tk.Tk()
+root.withdraw()
+root.iconbitmap('proteinsimple_logo_bt.ico')
+filename = askopenfilename(title='Choose your data files',
+                               multiple=False, filetypes=(('CSV Files', '*.csv'), ('All Files', '*.*')))
 f = open(filename)
-# Change this when implementing into program
+
 ##############################################
 # Create Style variable
 medium = Border(left=Side(style='medium'),
@@ -42,6 +46,9 @@ medium_thinbottom = Border(left=Side(style='medium'),
                            top=Side(style='thin'),
                            bottom=Side(style='thin'))
 
+center_center = Alignment(horizontal='center', vertical='center')
+
+yellow_fill = PatternFill('solid', fgColor=colors.YELLOW)
 ##############################################
 # Helper functions
 
@@ -77,9 +84,8 @@ def getItems(sheet, analyte, feature):
             if count == 100:
                 raise ValueError('Item not found')
     except ValueError as error:
-        easygui.msgbox(msg="Missing item {}.  Please export your data with "
-                       "this item included".format(feature), title="Failure",
-                       ok_button="OK")
+        messagebox.showerror(message="Missing item {}.  Please export your data with "
+                       "this item included".format(feature), title="Failure")
         sys.exit()
 
 
@@ -128,8 +134,8 @@ for index, row in enumerate(iterable=ws1.iter_rows(min_row=2, max_row=5,
         analyteOrder.append(cell.value)
 
 searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
-               'RFU', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
-               'Signal', 'Gnr1CalculatedConcentration',
+               'Signal', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
+               'RFU', 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration',
                'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
@@ -166,12 +172,33 @@ for page in range(1, 3):
         headerList = headerList2
         searchList = searchList2
     for i in range(0, 4):
+        startRow = i * 20 + 1
         analyteString = 'Analyte {} ({})'.format(i+1, analyteOrder[i])
-        startRow = i*20+1
         workingSheet['A{}'.format(startRow)] = analyteString
+        if (page == 1):
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=2, end_row=startRow + 1, end_column=7)
+            cell = workingSheet['B{}'.format(startRow+1)]
+            cell.value = 'RFU'
+            cell.alignment = center_center
+            cell.fill = yellow_fill
+            cell.border = medium_thinbottom
+
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=8, end_row=startRow + 1, end_column=11)
+            cell = workingSheet['H{}'.format(startRow + 1)]
+            cell.value = 'RFU-Bkgd'
+            cell.alignment = center_center
+            cell.fill = yellow_fill
+            cell.border = medium_thinbottom
+
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=12, end_row=startRow + 1, end_column=16)
+            cell = workingSheet['L{}'.format(startRow + 1)]
+            cell.value = 'Calculated Concentration'
+            cell.alignment = center_center
+            cell.fill = yellow_fill
+            cell.border = medium_thinbottom
         for index, col in enumerate(iterable=workingSheet.iter_cols(
-                                        min_row=startRow+1,
-                                        min_col=1, max_row=startRow+1,
+                                        min_row=startRow+2,
+                                        min_col=1, max_row=startRow+2,
                                         max_col=len(headerList))):
             for cell in col:
                 cell.value = headerList[index]
@@ -181,8 +208,8 @@ for page in range(1, 3):
                     workingSheet.column_dimensions[cell.column].width = length
 
         for index, row in enumerate(iterable=workingSheet.iter_rows(
-                                        min_row=startRow+2,
-                                        max_col=1, max_row=startRow+17)):
+                                        min_row=startRow+3,
+                                        max_col=1, max_row=startRow+18)):
             for cell in row:
                 cell.value = index+1
                 cell.border = medium_thinbottom
@@ -193,8 +220,8 @@ for page in range(1, 3):
             values = getItems(ws1, i+1, feature)
             for index2, row in enumerate(iterable=workingSheet.iter_rows(
                                             min_col=index+2,
-                                            min_row=startRow+2,
-                                            max_row=startRow+17)):
+                                            min_row=startRow+3,
+                                            max_row=startRow+18)):
                 for cell in row:
                     cell.value = values[index2]
                     cell.border = thin
@@ -299,10 +326,10 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             else:
                 break
     xref = Reference(ws4, min_col=2+index, max_col=2+index,
-                     min_row=28, max_row=28+len(xvalues))
+                     min_row=28, max_row=27+len(xvalues))
     yref = Reference(ws4, min_col=2+index, max_col=2+index,
-                     min_row=29+len(xvalues),
-                     max_row=29+len(xvalues)+len(values))
+                     min_row=28+len(xvalues),
+                     max_row=27+len(xvalues)+len(values))
     # xvalues.insert(0, 'X')
     # values.insert(0, 'Y')
     chart = ScatterChart()
@@ -320,11 +347,13 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     series.marker = marker.Marker('x')
     series.graphicalProperties.line.noFill = True
     chart.series.append(series)
-    ws4.add_chart(chart, 'H4')
+    ws4.add_chart(chart, 'H{}'.format((index * 15) + 1))
 
 ##############################################
 # Save the resulting file
 newName = 'output.xlsx'
-dest_filename = easygui.filesavebox(msg='Save File.', default=newName,
-                                    filetypes=['*.xlsx'])
+dest_filename = asksaveasfilename(title='Save File.', filetypes=(('xlsx files', '*.xlsx'), ('all files', '*.*')),
+                                       initialfile=newName)
+# dest_filename = (msg='Save File.', default=newName,
+  #                                   filetypes=['*.xlsx'])
 wb.save(filename=dest_filename)
