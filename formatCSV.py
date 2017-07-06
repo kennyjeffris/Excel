@@ -15,6 +15,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, PatternFill, colors
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart import LineChart, ScatterChart, Reference, Series, marker
+from openpyxl.chart.layout import Layout, ManualLayout
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import messagebox
 import tkinter as tk
@@ -181,21 +182,32 @@ for page in range(1, 3):
             cell.value = 'RFU'
             cell.alignment = center_center
             cell.fill = yellow_fill
-            cell.border = medium_thinbottom
 
             workingSheet.merge_cells(start_row=startRow + 1, start_column=8, end_row=startRow + 1, end_column=11)
             cell = workingSheet['H{}'.format(startRow + 1)]
             cell.value = 'RFU-Bkgd'
             cell.alignment = center_center
             cell.fill = yellow_fill
-            cell.border = medium_thinbottom
 
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=12, end_row=startRow + 1, end_column=16)
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=12, end_row=startRow + 1, end_column=15)
             cell = workingSheet['L{}'.format(startRow + 1)]
             cell.value = 'Calculated Concentration'
             cell.alignment = center_center
             cell.fill = yellow_fill
-            cell.border = medium_thinbottom
+            for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow+1, max_row=startRow+1,
+                                                                        min_col=2, max_col=15)):
+                for cell in col:
+                    cell.border = medium_thinbottom
+        else:
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=2, end_row=startRow + 1, end_column=6)
+            cell = workingSheet['B{}'.format(startRow + 1)]
+            cell.value = 'Calculated Concentration'
+            cell.alignment = center_center
+            cell.fill = yellow_fill
+            for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow+1, max_row=startRow+1,
+                                                                        min_col=2, max_col=6)):
+                for cell in col:
+                    cell.border = medium_thinbottom
         for index, col in enumerate(iterable=workingSheet.iter_cols(
                                         min_row=startRow+2,
                                         min_col=1, max_row=startRow+2,
@@ -330,19 +342,22 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     yref = Reference(ws4, min_col=2+index, max_col=2+index,
                      min_row=28+len(xvalues),
                      max_row=27+len(xvalues)+len(values))
-    # xvalues.insert(0, 'X')
-    # values.insert(0, 'Y')
+
     chart = ScatterChart()
-    chart.title = 'Test'
+    chart.title = '{}'.format(headerList3[index+1])
     chart.style = 13
-    chart.y_axis.title = 'Y'
-    chart.x_axis.title = 'X'
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
     chart.x_axis.scaling.min = 0.01
     chart.y_axis.scaling.min = 0.01
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000
+    chart.y_axis.crossesAt = 0.01
+    chart.x_axis.crossesAt = 0.01
+    chart.layout = Layout(manualLayout=ManualLayout(
+        xMode='edge', yMode='edge', x=0.05, y=0.1, h=0.8, w=0.8))
+    chart.y_axis.title = 'Y'
+    chart.x_axis.title = 'Concentration (pg/ml)'
     series = Series(yref, xref, title_from_data=False)
     series.marker = marker.Marker('x')
     series.graphicalProperties.line.noFill = True
@@ -354,6 +369,4 @@ for index, col in enumerate(iterable=ws4.iter_cols(
 newName = 'output.xlsx'
 dest_filename = asksaveasfilename(title='Save File.', filetypes=(('xlsx files', '*.xlsx'), ('all files', '*.*')),
                                        initialfile=newName)
-# dest_filename = (msg='Save File.', default=newName,
-  #                                   filetypes=['*.xlsx'])
 wb.save(filename=dest_filename)
