@@ -27,6 +27,9 @@ root.withdraw()
 root.iconbitmap('proteinsimple_logo_bt.ico')
 filename = askopenfilename(title='Choose your data files',
                            multiple=False, filetypes=(('CSV Files', '*.csv'), ('All Files', '*.*')))
+if not filename:
+    sys.exit()
+
 f = open(filename)
 
 ##############################################
@@ -366,4 +369,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
 newName = 'output.xlsx'
 dest_filename = asksaveasfilename(title='Save File.', filetypes=(('xlsx files', '*.xlsx'), ('all files', '*.*')),
                                   initialfile=newName)
+if not dest_filename:
+    sys.exit()
+
 wb.save(filename=dest_filename)
