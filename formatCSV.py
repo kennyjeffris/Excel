@@ -1,6 +1,6 @@
 """
 Script to format csv file.
-
+Release version 1.0
 Author: Kenny Jeffris
 """
 
@@ -14,8 +14,7 @@ from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, PatternFill, colors
 from openpyxl.styles.borders import Border, Side
-from openpyxl.chart import LineChart, ScatterChart, Reference, Series, marker
-from openpyxl.chart.layout import Layout, ManualLayout
+from openpyxl.chart import ScatterChart, Reference, Series, marker
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import messagebox
 import tkinter as tk
@@ -27,7 +26,7 @@ root = tk.Tk()
 root.withdraw()
 root.iconbitmap('proteinsimple_logo_bt.ico')
 filename = askopenfilename(title='Choose your data files',
-                               multiple=False, filetypes=(('CSV Files', '*.csv'), ('All Files', '*.*')))
+                           multiple=False, filetypes=(('CSV Files', '*.csv'), ('All Files', '*.*')))
 f = open(filename)
 
 ##############################################
@@ -54,39 +53,38 @@ yellow_fill = PatternFill('solid', fgColor=colors.YELLOW)
 # Helper functions
 
 
-def col2num(col):
+def col2num(colindex):
     """Convert excel column letter to index number."""
-    num = 0
-    for c in col:
+    number = 0
+    for c in colindex:
         if c in string.ascii_letters:
-            num = num * 26 + (ord(c.upper()) - ord('A')) + 1
-    return num
+            number = number * 26 + (ord(c.upper()) - ord('A')) + 1
+    return number
 
 
-def getItems(sheet, analyte, feature):
+def getitems(sheet, analyte, data):
     """Get the items in a column of a request sheet."""
     try:
         done = False
         count = 1
-        while (not done):
-            column_letter = get_column_letter(count)
-            index = column_letter + '1'
-            if feature == sheet[index].value:
+        while not done:
+            letter = get_column_letter(count)
+            ind = letter + '1'
+            if data == sheet[ind].value:
                 item = []
-                for i in range(analyte, 65, 4):
-                    index = column_letter + str(i + 1)
+                for l in range(analyte, 65, 4):
+                    ind = letter + str(l + 1)
                     try:
-                        item.append(float(sheet[index].value))
+                        item.append(float(sheet[ind].value))
                     except Exception:
-                        item.append(sheet[index].value)
-                done = True
+                        item.append(sheet[ind].value)
                 return item
             count += 1
             if count == 100:
                 raise ValueError('Item not found')
     except ValueError as error:
         messagebox.showerror(message="Missing item {}.  Please export your data with "
-                       "this item included".format(feature), title="Failure")
+                             "this item included".format(feature), title="Failure")
         sys.exit()
 
 
@@ -97,16 +95,9 @@ def as_text(value):
     return str(value)
 
 
-def createChart(title, style, ytitle, xtitle, sheet, min_row, max_row, min_col,
-                max_col):
-    """Create a line chart."""
-    chart = LineChart(title=title, style=style)
-    chart.y_axis.title = ytitle
-    chart.x_axis.title = xtitle
-    data = Reference(sheet, min_col=min_col, min_row=min_row, max_col=max_col,
-                     max_row=max_row)
-    chart.add_data(data, titles_from_data=True)
-    return chart
+def polyfit(x, coefficients):
+    return (coefficients[3] + (coefficients[0] - coefficients[3]) /
+            ((1 + (x / coefficients[2]) ** coefficients[1]) ** coefficients[1]))
 
 
 ##############################################
@@ -128,12 +119,15 @@ for row_index, row in enumerate(reader):
         column_letter = get_column_letter((column_index + 1))
         ws1['%s%s' % (column_letter, (row_index + 1))].value = cell
 ##############################################
+
+# Get the order of analytes and make a usable list
 analyteOrder = []
 for index, row in enumerate(iterable=ws1.iter_rows(min_row=2, max_row=5,
                                                    max_col=1)):
     for cell in row:
         analyteOrder.append(cell.value)
 
+# Lists for Summary 1
 searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                'Signal', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
                'RFU', 'Gnr1CalculatedConcentration',
@@ -142,14 +136,16 @@ searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                'CalculatedConcentrationPercentCV']
 
 headerList1 = ['Sample', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
-             'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
+               'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
+# Lists for Summary 2
 searchList2 = ['Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
 headerList2 = ['Sample', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
+# Lists for Summary 3
 headerList3 = (analyteOrder[:])
 headerList3.insert(0, 'Sample')
 
@@ -164,7 +160,7 @@ ws2 = wb.create_sheet(title='Summary 1')
 ws3 = wb.create_sheet(title='Summary 2')
 
 for page in range(1, 3):
-    if (page == 1):
+    if page == 1:
         workingSheet = ws2
         headerList = headerList1
         searchList = searchList1
@@ -176,7 +172,7 @@ for page in range(1, 3):
         startRow = i * 20 + 1
         analyteString = 'Analyte {} ({})'.format(i+1, analyteOrder[i])
         workingSheet['A{}'.format(startRow)] = analyteString
-        if (page == 1):
+        if page == 1:
             workingSheet.merge_cells(start_row=startRow + 1, start_column=2, end_row=startRow + 1, end_column=7)
             cell = workingSheet['B{}'.format(startRow+1)]
             cell.value = 'RFU'
@@ -215,7 +211,7 @@ for page in range(1, 3):
             for cell in col:
                 cell.value = headerList[index]
                 cell.border = medium
-                if (i == 0):
+                if i == 0:
                     length = len(as_text(cell.value)) + 2
                     workingSheet.column_dimensions[cell.column].width = length
 
@@ -229,7 +225,7 @@ for page in range(1, 3):
         for index, col in enumerate(iterable=workingSheet.iter_cols(
                                         min_col=2, max_col=len(headerList))):
             feature = searchList[index]
-            values = getItems(ws1, i+1, feature)
+            values = getitems(ws1, i+1, feature)
             for index2, row in enumerate(iterable=workingSheet.iter_rows(
                                             min_col=index+2,
                                             min_row=startRow+3,
@@ -260,7 +256,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_col=2, max_col=len(headerList3),
                                 min_row=3, max_row=18)):
 
-    values = getItems(ws1, index+1, headerList4[0])
+    values = getitems(ws1, index+1, headerList4[0])
     for index2, row in enumerate(iterable=ws4.iter_rows(
                                     min_col=index+2,
                                     min_row=3,
@@ -291,7 +287,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
                                     min_col=index+2,
                                     min_row=22,
                                     max_row=26)):
-        values = getItems(ws1, index+1, headerList4[index2+1])
+        values = getitems(ws1, index+1, headerList4[index2+1])
         for cell in row:
             cell.value = values[0]
             cell.border = thin
@@ -309,6 +305,9 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             coeffs.append(cell.value)
     xvalues = []
     values = []
+    xvalues.extend((.1, 1, 10, 100, 1000, 10000))
+    for num in range(0, len(xvalues)):
+        values.append(polyfit(xvalues[num], coeffs))
     for index3, row in enumerate(iterable=ws4.iter_rows(
                                     min_row=3,
                                     max_row=18,
@@ -318,21 +317,20 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             xval = cell.value
             if isinstance(xval, float) and not np.isnan(xval):
                 xvalues.append(xval)
-                yval = coeffs[3] + (coeffs[0] - coeffs[3]) / \
-                       ((1 + (xval / coeffs[2])**coeffs[1])**coeffs[1])
-                values.append(yval)
+                values.append(polyfit(xval, coeffs))
+
     sorted_lists = sorted(zip(xvalues, values), reverse=False,
                           key=lambda x: x[0])
     xvalues, values = [[x[i] for x in sorted_lists] for i in range(2)]
     count1 = 0
     count2 = 0
     for index4, row in enumerate(iterable=ws4.iter_rows(
-                            range_string='{}28:{}60'.format(let, let))):
+                            range_string='{}28:{}72'.format(let, let))):
         for cell in row:
-            if (count1 < len(xvalues)):
+            if count1 < len(xvalues):
                 cell.value = xvalues[count1]
                 count1 += 1
-            elif(count1 >= len(values) and count2 < len(values)):
+            elif count1 >= len(values) and count2 < len(values):
                 cell.value = values[count2]
                 count2 += 1
             else:
@@ -349,17 +347,17 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     chart.legend = None
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
-    chart.x_axis.scaling.min = 0.01
-    chart.y_axis.scaling.min = 0.01
+    chart.x_axis.scaling.min = 0.1
+    chart.y_axis.scaling.min = 0.1
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000
-    chart.y_axis.crossesAt = 0.01
+    chart.y_axis.crossesAt = 0.1
     chart.y_axis.title = 'Y'
     chart.x_axis.title = 'Concentration (pg/ml)'
     chart.x_axis.tickLblPos = "low"
     series = Series(yref, xref, title_from_data=False)
-    series.marker = marker.Marker('x')
-    series.graphicalProperties.line.noFill = True
+    series.marker = marker.Marker('triangle')
+    series.smooth = True
     chart.series.append(series)
     ws4.add_chart(chart, 'H{}'.format((index * 15) + 1))
 
@@ -367,5 +365,5 @@ for index, col in enumerate(iterable=ws4.iter_cols(
 # Save the resulting file
 newName = 'output.xlsx'
 dest_filename = asksaveasfilename(title='Save File.', filetypes=(('xlsx files', '*.xlsx'), ('all files', '*.*')),
-                                       initialfile=newName)
+                                  initialfile=newName)
 wb.save(filename=dest_filename)
