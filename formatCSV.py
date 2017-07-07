@@ -78,7 +78,7 @@ def getItems(sheet, analyte, feature):
                     try:
                         item.append(float(sheet[index].value))
                     except Exception:
-                        item.append('')
+                        item.append(sheet[index].value)
                 done = True
                 return item
             count += 1
@@ -141,7 +141,7 @@ searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
-headerList1 = ['Sample', 'Bkgd', 'Gnr1', 'Gnr2', 'Avg', '% CV', 'Gnr1', 'Gnr2',
+headerList1 = ['Sample', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
              'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
 searchList2 = ['Gnr1CalculatedConcentration',
@@ -189,13 +189,13 @@ for page in range(1, 3):
             cell.alignment = center_center
             cell.fill = yellow_fill
 
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=12, end_row=startRow + 1, end_column=15)
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=12, end_row=startRow + 1, end_column=16)
             cell = workingSheet['L{}'.format(startRow + 1)]
             cell.value = 'Calculated Concentration'
             cell.alignment = center_center
             cell.fill = yellow_fill
             for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow+1, max_row=startRow+1,
-                                                                        min_col=2, max_col=15)):
+                                                                        min_col=2, max_col=16)):
                 for cell in col:
                     cell.border = medium_thinbottom
         else:
@@ -346,6 +346,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     chart = ScatterChart()
     chart.title = '{}'.format(headerList3[index+1])
     chart.style = 13
+    chart.legend = None
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
     chart.x_axis.scaling.min = 0.01
@@ -353,11 +354,9 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000
     chart.y_axis.crossesAt = 0.01
-    chart.x_axis.crossesAt = 0.01
-    chart.layout = Layout(manualLayout=ManualLayout(
-        xMode='edge', yMode='edge', x=0.05, y=0.1, h=0.8, w=0.8))
     chart.y_axis.title = 'Y'
     chart.x_axis.title = 'Concentration (pg/ml)'
+    chart.x_axis.tickLblPos = "low"
     series = Series(yref, xref, title_from_data=False)
     series.marker = marker.Marker('x')
     series.graphicalProperties.line.noFill = True
