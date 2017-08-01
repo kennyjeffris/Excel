@@ -1,6 +1,6 @@
 """
 Script to format csv file.
-Release version 1.0
+Release version 1.0.1
 Author: Kenny Jeffris
 """
 
@@ -15,6 +15,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, PatternFill, colors
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart import ScatterChart, Reference, Series, marker
+from openpyxl.drawing.fill import ColorChoice
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import messagebox
 import tkinter as tk
@@ -75,15 +76,19 @@ def getitems(sheet, analyte, data):
             ind = letter + '1'
             if data == sheet[ind].value:
                 item = []
-                for l in range(analyte, 65, 4):
+                for l in range(analyte, max_row, 4):
                     ind = letter + str(l + 1)
+                    cell = sheet[ind]
                     try:
-                        item.append(float(sheet[ind].value))
+                        if cell.value.isspace() or cell.value == '' or cell.value is None:
+                            item.append("ND")
+                        else:
+                            item.append(float(cell.value))
                     except Exception:
-                        item.append(sheet[ind].value)
+                        item.append(cell.value)
                 return item
             count += 1
-            if count == 100:
+            if count > max_col:
                 raise ValueError('Item not found')
     except ValueError as error:
         messagebox.showerror(message="Missing item {}.  Please export your data with "
@@ -121,14 +126,34 @@ for row_index, row in enumerate(reader):
     for column_index, cell in enumerate(row):
         column_letter = get_column_letter((column_index + 1))
         ws1['%s%s' % (column_letter, (row_index + 1))].value = cell
+        max_col = column_index + 1
+    max_row = row_index + 1
 ##############################################
 
 # Get the order of analytes and make a usable list
-analyteOrder = []
-for index, row in enumerate(iterable=ws1.iter_rows(min_row=2, max_row=5,
-                                                   max_col=1)):
-    for cell in row:
-        analyteOrder.append(cell.value)
+try:
+    analyteOrder = []
+    done = False
+    count = 1
+    while not done:
+        letter = get_column_letter(count)
+        ind = letter + '1'
+        if ws1[ind].value == "AnalyteName":
+            for l in range(2, 6):
+                ind = letter + str(l)
+                try:
+                    analyteOrder.append(str(ws1[ind].value))
+                except Exception:
+                    analyteOrder.append(ws1[ind].value)
+            break
+        count += 1
+        if count == max_col:
+            raise ValueError('Item not found')
+except ValueError as error:
+    messagebox.showerror(message="Missing Analyte Names.  Please export your data with "
+                                 "this item included", title="Failure")
+    sys.exit()
+
 
 # Lists for Summary 1
 searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
@@ -296,6 +321,10 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             cell.border = thin
 ##############################################
 # Add plots to Summary 3
+
+colors = [ColorChoice(prstClr="red"), ColorChoice(prstClr="orange"), ColorChoice(prstClr="blue"),
+          ColorChoice(prstClr="green")]
+
 for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_col=2,
                                 max_col=5)):
@@ -310,7 +339,8 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     values = []
     xvalues.extend((.1, 1, 10, 100, 1000, 10000))
     for num in range(0, len(xvalues)):
-        values.append(polyfit(xvalues[num], coeffs))
+        if isinstance(xvalues[num], float):
+            values.append(polyfit(xvalues[num], coeffs))
     for index3, row in enumerate(iterable=ws4.iter_rows(
                                     min_row=3,
                                     max_row=18,
@@ -355,12 +385,16 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000
     chart.y_axis.crossesAt = 0.1
-    chart.y_axis.title = 'Y'
+    chart.y_axis.title = 'RFU'
     chart.x_axis.title = 'Concentration (pg/ml)'
     chart.x_axis.tickLblPos = "low"
     series = Series(yref, xref, title_from_data=False)
-    series.marker = marker.Marker('triangle')
+    series.marker = marker.Marker('circle')
     series.smooth = True
+    series.graphicalProperties.line.width = 40000
+    series.graphicalProperties.line.solidFill = colors[index]
+    series.marker.graphicalProperties.solidFill = colors[index]  # Marker filling
+    series.marker.graphicalProperties.line.solidFill = colors[index]  # Marker outline
     chart.series.append(series)
     ws4.add_chart(chart, 'H{}'.format((index * 15) + 1))
 
