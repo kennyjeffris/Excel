@@ -19,7 +19,6 @@ from openpyxl.drawing.fill import ColorChoice
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import messagebox
 import tkinter as tk
-import numpy as np
 
 ##############################################
 # Open the file to format.
@@ -64,7 +63,10 @@ medium_thinbottom = Border(left=Side(style='medium'),
 
 center_center = Alignment(horizontal='center', vertical='center')
 
+right_center = Alignment(horizontal='right', vertical='center')
+
 yellow_fill = PatternFill('solid', fgColor=colors.YELLOW)
+red_fill = PatternFill('solid', fgColor=colors.RED)
 ##############################################
 # Helper functions
 
@@ -168,22 +170,22 @@ except ValueError as error:
 
 
 # Lists for Summary 1
-searchList1 = ['Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
+searchList1 = ['Sample', 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                'Signal', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
                'RFU', 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration',
                'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
-headerList1 = ['Sample', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
+headerList1 = ['Sample #', 'Sample Name', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
                'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
 # Lists for Summary 2
-searchList2 = ['Gnr1CalculatedConcentration',
+searchList2 = ['Sample', 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
-headerList2 = ['Sample', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
+headerList2 = ['Sample #', 'Sample Name', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
 # Lists for Summary 3
 headerList3 = (analyteOrder[:])
@@ -213,35 +215,35 @@ for page in range(1, 3):
         analyteString = 'Analyte {} ({})'.format(i+1, analyteOrder[i])
         workingSheet['A{}'.format(startRow)] = analyteString
         if page == 1:
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=2, end_row=startRow + 1, end_column=7)
-            cell = workingSheet['B{}'.format(startRow+1)]
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=3, end_row=startRow + 1, end_column=8)
+            cell = workingSheet['C{}'.format(startRow+1)]
             cell.value = 'RFU'
             cell.alignment = center_center
             cell.fill = yellow_fill
 
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=8, end_row=startRow + 1, end_column=11)
-            cell = workingSheet['H{}'.format(startRow + 1)]
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=9, end_row=startRow + 1, end_column=12)
+            cell = workingSheet['I{}'.format(startRow + 1)]
             cell.value = 'RFU-Bkgd'
             cell.alignment = center_center
             cell.fill = yellow_fill
 
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=12, end_row=startRow + 1, end_column=16)
-            cell = workingSheet['L{}'.format(startRow + 1)]
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=13, end_row=startRow + 1, end_column=17)
+            cell = workingSheet['M{}'.format(startRow + 1)]
             cell.value = 'Calculated Concentration'
             cell.alignment = center_center
             cell.fill = yellow_fill
             for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow+1, max_row=startRow+1,
-                                                                        min_col=2, max_col=16)):
+                                                                        min_col=3, max_col=17)):
                 for cell in col:
                     cell.border = medium_thinbottom
         else:
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=2, end_row=startRow + 1, end_column=6)
-            cell = workingSheet['B{}'.format(startRow + 1)]
+            workingSheet.merge_cells(start_row=startRow + 1, start_column=3, end_row=startRow + 1, end_column=7)
+            cell = workingSheet['C{}'.format(startRow + 1)]
             cell.value = 'Calculated Concentration'
             cell.alignment = center_center
             cell.fill = yellow_fill
             for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow+1, max_row=startRow+1,
-                                                                        min_col=2, max_col=6)):
+                                                                        min_col=3, max_col=7)):
                 for cell in col:
                     cell.border = medium_thinbottom
         for index, col in enumerate(iterable=workingSheet.iter_cols(
@@ -268,10 +270,14 @@ for page in range(1, 3):
             values = getitems(ws1, i+1, feature)
             for index2, row in enumerate(iterable=workingSheet.iter_rows(
                                             min_col=index+2,
+                                            max_col=index+2,
                                             min_row=startRow+3,
                                             max_row=startRow+18)):
                 for cell in row:
                     cell.value = values[index2]
+                    if cell.value == 'ND':
+                        cell.fill = red_fill
+                    cell.alignment = right_center
                     cell.border = thin
 ##############################################
 # Populate Summary 3
@@ -299,10 +305,14 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     values = getitems(ws1, index+1, headerList4[0])
     for index2, row in enumerate(iterable=ws4.iter_rows(
                                     min_col=index+2,
+                                    max_col=index+2,
                                     min_row=3,
                                     max_row=18)):
         for cell in row:
             cell.value = values[index2]
+            if cell.value == 'ND':
+                cell.fill = red_fill
+            cell.alignment = right_center
             cell.border = thin
 
 ws4['A20'].value = headerList5[0]
@@ -360,7 +370,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
                                     max_col=2+index)):
         for cell in row:
             xval = cell.value
-            if isinstance(xval, (int, float, complex)) and not np.isnan(xval):
+            if isinstance(xval, (int, float, complex)):
                 xvalues.append(xval)
                 values.append(polyfit(xval, coeffs))
 
