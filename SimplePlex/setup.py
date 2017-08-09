@@ -15,7 +15,7 @@ Exclude_Modules = [
     "jupyter_core", "tcl8.6/tzdata", "nose", "unittest"
 ]
 
-buildOptions = {"includes": Include_Modules, "include_files": ["tcl86t.dll", "tk86t.dll", "proteinsimple_logo_bt.ico"],
+buildOptions = {"includes": Include_Modules, "include_files": ["compile_dependencies/tcl86t.dll", "compile_dependencies/tk86t.dll", "proteinsimple_logo_bt.ico"],
                 "excludes": Exclude_Modules,
                 }
 

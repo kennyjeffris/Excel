@@ -1,6 +1,5 @@
 *.xls
 *.xlsx
-*.dll
 *.build
 .idea/*
 *.spec
