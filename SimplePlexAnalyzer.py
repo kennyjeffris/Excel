@@ -1,5 +1,5 @@
 """
-Script to format csv file.
+Script to format SimplPlex output .csv file.
 Release version 1.0.1
 Author: Kenny Jeffris
 """
@@ -80,7 +80,7 @@ def col2num(colindex):
     return number
 
 
-def getitems(sheet, analyte, data):
+def get_items(sheet, analyte, data):
     """Get the items in a column of a request sheet."""
     try:
         done = False
@@ -117,7 +117,7 @@ def as_text(value):
     return str(value)
 
 
-def polyfit(x, coefficients):
+def poly_fit(x, coefficients):
     return (coefficients[3] + (coefficients[0] - coefficients[3]) /
             ((1 + (x / coefficients[2]) ** coefficients[1]) ** coefficients[4]))
 
@@ -267,7 +267,7 @@ for page in range(1, 3):
         for index, col in enumerate(iterable=workingSheet.iter_cols(
                                         min_col=2, max_col=len(headerList))):
             feature = searchList[index]
-            values = getitems(ws1, i+1, feature)
+            values = get_items(ws1, i+1, feature)
             for index2, row in enumerate(iterable=workingSheet.iter_rows(
                                             min_col=index+2,
                                             max_col=index+2,
@@ -302,7 +302,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_col=2, max_col=len(headerList3),
                                 min_row=3, max_row=18)):
 
-    values = getitems(ws1, index+1, headerList4[0])
+    values = get_items(ws1, index+1, headerList4[0])
     for index2, row in enumerate(iterable=ws4.iter_rows(
                                     min_col=index+2,
                                     max_col=index+2,
@@ -337,7 +337,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
                                     min_col=index+2,
                                     min_row=22,
                                     max_row=26)):
-        values = getitems(ws1, index+1, headerList4[index2+1])
+        values = get_items(ws1, index+1, headerList4[index2+1])
         for cell in row:
             cell.value = values[0]
             cell.border = thin
@@ -362,7 +362,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     xvalues.extend((.1, 1, 10, 100, 1000, 10000))
     for num in range(0, len(xvalues)):
         if isinstance(xvalues[num], (int, float, complex)):
-            values.append(polyfit(xvalues[num], coeffs))
+            values.append(poly_fit(xvalues[num], coeffs))
     for index3, row in enumerate(iterable=ws4.iter_rows(
                                     min_row=3,
                                     max_row=18,
@@ -372,7 +372,7 @@ for index, col in enumerate(iterable=ws4.iter_cols(
             xval = cell.value
             if isinstance(xval, (int, float, complex)):
                 xvalues.append(xval)
-                values.append(polyfit(xval, coeffs))
+                values.append(poly_fit(xval, coeffs))
 
     xvalues, values = zip(*sorted(zip(xvalues, values)))
     xvalues, values = (list(t) for t in zip(*sorted(zip(xvalues, values))))
