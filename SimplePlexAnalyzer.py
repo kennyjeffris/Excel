@@ -88,19 +88,30 @@ def get_items(sheet, analyte, data):
         while not done:
             letter = get_column_letter(count)
             ind = letter + '1'
-            if data == sheet[ind].value:
-                item = []
-                for l in range(analyte, max_row, 4):
-                    ind = letter + str(l + 1)
-                    cell = sheet[ind]
-                    try:
-                        if cell.value.isspace() or cell.value == '' or cell.value is None or cell.value == "NaN":
-                            item.append("ND")
-                        else:
-                            item.append(float(cell.value))
-                    except Exception:
-                        item.append(cell.value)
-                return item
+            # Check for instances where variable names change and a list of options are available.
+            if isinstance(data, (list, tuple)):
+                iter_length = len(data)
+            else:
+                iter_length = 1
+            for x in range(0, iter_length):
+                if iter_length == 1:
+                    obj = data
+                else:
+                    obj = data[x]
+
+                if obj == sheet[ind].value:
+                    item = []
+                    for l in range(analyte, max_row, 4):
+                        ind = letter + str(l + 1)
+                        cell = sheet[ind]
+                        try:
+                            if cell.value.isspace() or cell.value == '' or cell.value is None or cell.value == "NaN":
+                                item.append("ND")
+                            else:
+                                item.append(float(cell.value))
+                        except Exception:
+                            item.append(cell.value)
+                    return item
             count += 1
             if count > max_col:
                 raise ValueError('Item not found')
@@ -170,7 +181,8 @@ except ValueError as error:
 
 
 # Lists for Summary 1
-searchList1 = ['Sample', 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
+sample_name_options = ['Sample', 'SampleName']
+searchList1 = [sample_name_options, 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                'Signal', 'RFUPercentCV', 'Gnr1Signal',	'Gnr2Signal', 'Gnr3Signal',
                'RFU', 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration',
@@ -181,7 +193,7 @@ headerList1 = ['Sample #', 'Sample Name', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg',
                'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
 
 # Lists for Summary 2
-searchList2 = ['Sample', 'Gnr1CalculatedConcentration',
+searchList2 = [sample_name_options, 'Gnr1CalculatedConcentration',
                'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration', 'CalculatedConcentration',
                'CalculatedConcentrationPercentCV']
 
@@ -344,9 +356,6 @@ for index, col in enumerate(iterable=ws4.iter_cols(
 ##############################################
 # Add plots to Summary 3
 
-colors = [ColorChoice(prstClr="red"), ColorChoice(prstClr="orange"), ColorChoice(prstClr="blue"),
-          ColorChoice(prstClr="green")]
-
 for index, col in enumerate(iterable=ws4.iter_cols(
                                 min_col=2,
                                 max_col=5)):
@@ -395,7 +404,9 @@ for index, col in enumerate(iterable=ws4.iter_cols(
                      min_row=28+len(xvalues),
                      max_row=27+len(xvalues)+len(values))
 
+    # Chart formatting
     chart = ScatterChart()
+    # Title
     chart.title = '{}'.format(headerList3[index+1])
     chart.style = 13
     chart.legend = None
@@ -412,10 +423,10 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     series = Series(yref, xref, title_from_data=False)
     series.marker = marker.Marker('circle')
     series.smooth = True
-    series.graphicalProperties.line.width = 40000
-    series.graphicalProperties.line.solidFill = colors[index]
-    series.marker.graphicalProperties.solidFill = colors[index]  # Marker filling
-    series.marker.graphicalProperties.line.solidFill = colors[index]  # Marker outline
+    series.graphicalProperties.line.width = 20000
+    series.graphicalProperties.line.solidFill = ColorChoice(prstClr="orange")
+    series.marker.graphicalProperties.solidFill = ColorChoice(prstClr="orange")  # Marker filling
+    series.marker.graphicalProperties.line.solidFill = ColorChoice(prstClr="orange")  # Marker outline
     chart.series.append(series)
     ws4.add_chart(chart, 'H{}'.format((index * 15) + 1))
 
@@ -433,4 +444,3 @@ except PermissionError as e:
 
 if not dest_filename:
     sys.exit()
-
