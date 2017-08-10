@@ -27,7 +27,7 @@ def get():
     useful_styles['red'] = 'FF5050'
     # Highlight colors
     useful_styles['yellow_fill'] = PatternFill('solid', fgColor=colors.YELLOW)
-    useful_styles['red_fill'] = PatternFill('solid', fgColor=red)
-    useful_styles['light_blue_fill'] = PatternFill('solid', fgColor=light_blue)
+    useful_styles['red_fill'] = PatternFill('solid', fgColor=useful_styles['red'])
+    useful_styles['light_blue_fill'] = PatternFill('solid', fgColor=useful_styles['light_blue'])
 
     return useful_styles
