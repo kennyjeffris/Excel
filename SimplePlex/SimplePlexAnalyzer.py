@@ -64,9 +64,13 @@ medium_thinbottom = Border(left=Side(style='medium'),
 center_center = Alignment(horizontal='center', vertical='center')
 
 right_center = Alignment(horizontal='right', vertical='center')
-
+# Colors
+light_blue = '95B3D7'
+red = 'FF5050'
+# Highlight colors
 yellow_fill = PatternFill('solid', fgColor=colors.YELLOW)
-red_fill = PatternFill('solid', fgColor=colors.RED)
+red_fill = PatternFill('solid', fgColor=red)
+light_blue_fill = PatternFill('solid', fgColor=light_blue)
 ##############################################
 # Helper functions
 
