@@ -1,7 +1,7 @@
-*.xls
-*.xlsx
+#*.xls
+#*.xlsx
 *.build
-.idea/*
+#.idea/*
 *.spec
 /build/
-*.csv
+#*.csv

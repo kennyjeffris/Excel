@@ -2,6 +2,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import messagebox
 import sys
 import csv
+import tkinter as tk
 from openpyxl import Workbook
 from openpyxl.compat import range
 from openpyxl.utils import get_column_letter
@@ -10,9 +11,9 @@ from openpyxl.styles.borders import Border, Side
 
 ##############################
 # Global variables
-root
-max_row
-max_col
+root = tk.Tk()
+max_row = 0
+max_col = 0
 ##############################
 
 def main():
@@ -25,7 +26,6 @@ def main():
 
 def get_file():
     global root
-    root = tk.Tk()
     root.withdraw()
     root.iconbitmap('proteinsimple_logo_bt.ico')
     success = False
@@ -93,9 +93,12 @@ def get_analytes(wb):
                         analyteOrder.append(wb.ws1[ind].value)
                 break'''
 
+                # REWRITE SMARTER CODE HERE FIXME
+
                 if not analyte_order:
                     analyte_order.append(str(wb.ws1[ind].value))
                 else:
+                    pass #FIXME
             count += 1
             if count == max_col:
                 raise ValueError('Item not found')
@@ -105,10 +108,16 @@ def get_analytes(wb):
         sys.exit()
     return analyte_order
 
-def format_file(file, analytes):
+def format_file(wb, analytes):
     if len(analytes) == 1:
-
+        from one_by_72 import format
     else:
+        num_samples = get_num_samples(wb, analytes)
+        if num_samples == 16:
+            from four_by_16 import format
+        elif num_samples == 36:
+            from four_by_36 import format
+    return format(wb, analytes)
 
 if __name__ == '__main__':
     sys.exit(main())
