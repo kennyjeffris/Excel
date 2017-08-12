@@ -485,7 +485,6 @@ for index, col in enumerate(iterable=ws4.iter_cols(
     chart.x_axis.scaling.logBase = 10
     chart.y_axis.scaling.logBase = 10
     chart.x_axis.scaling.min = 0.1
-    chart.
     chart.y_axis.scaling.min = 0.1
     chart.x_axis.scaling.max = 10000
     chart.y_axis.scaling.max = 10000

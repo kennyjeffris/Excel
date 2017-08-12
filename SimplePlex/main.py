@@ -1,9 +1,8 @@
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import messagebox
-import sys
+from sys import exit
 import csv
 import tkinter as tk
-import string
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
@@ -35,7 +34,7 @@ def get_file():
             filename = askopenfilename(title='Choose your data files',
                                        multiple=False, filetypes=(('CSV Files', '*.csv'), ('All Files', '*.*')))
             if not filename:
-                sys.exit()
+                exit()
             elif not filename.endswith('.csv'):
                 success = False
                 messagebox.showerror(message="Invalid Filetype.",
@@ -60,10 +59,10 @@ def save_file(file, wb):
     except PermissionError as e:
         messagebox.showerror(message="The file you are trying to overwrite is open. Close it and try again",
                              title="Failure")
-        sys.exit()
+        exit()
 
     if not dest_filename:
-        sys.exit()
+        exit()
 
 
 def init_raw_data(file, wb):
@@ -111,7 +110,7 @@ def get_analytes(wb):
     except ValueError as error:
         messagebox.showerror(message="Missing Analyte Names.  Please export your data with "
                                      "this item included", title="Failure")
-        sys.exit()
+        exit()
     global num_samples
     num_samples = get_num_samples(ws1, analyte_order)
     return analyte_order
@@ -125,20 +124,12 @@ def format_file(wb, analytes):
             from four_by_16 import format
         elif num_samples == 36:
             from four_by_36 import format
-    return format(wb, analytes)
-
-
-def col2num(colindex):
-    """Convert excel column letter to index number."""
-    number = 0
-    for c in colindex:
-        if c in string.ascii_letters:
-            number = number * 26 + (ord(c.upper()) - ord('A')) + 1
-    return number
+    return format(wb, analytes, max_row, max_col)
 
 
 def get_num_samples(ws, analytes):
     return int((max_row - 1) / len(analytes))
 
+
 if __name__ == '__main__':
-    sys.exit(main())
+    exit(main())
