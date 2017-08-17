@@ -11,7 +11,7 @@ def format(wb, analytes, max_row, max_col):
     style = styles.get()
     headerlist, searchlist = prep_lists(analytes)
     wb.create_sheet(title='Summary 2')
-    wb = summaries_1_2(wb, analytes, headerlist, searchlist)
+    wb = summaries_1_2(wb, analytes, headerlist, searchlist, max_row, max_col)
     wb = summary_3(wb, analytes, headerlist, searchlist)
     return wb
 
@@ -57,19 +57,19 @@ def get_items(sheet, analyte, data, max_row, max_col):
         exit()
 
 
-def summaries_1_2(wb, analytes, headerList, searchList):
-    ws1 = wb.worksheet
+def summaries_1_2(wb, analytes, headerList, searchList, max_row, max_col):
+    ws1 = wb.worksheets[0]
     ws2 = wb.create_sheet(title='Summary 1')
     ws3 = wb.create_sheet(title='Summary 2')
     for page in range(1, 3):
         if page == 1:
             workingSheet = ws2
-            headerList = headerList[0]
-            searchList = searchList[0]
+            working_headerList = headerList[0]
+            working_searchList = searchList[0]
         else:
             workingSheet = ws3
-            headerList = headerList[1]
-            searchList = searchList[1]
+            working_headerList = headerList[1]
+            working_searchList = searchList[1]
         for i in range(0, 4):
             startRow = i * 20 + 1
             analyteString = 'Analyte {} ({})'.format(i + 1, analytes[i])
@@ -109,9 +109,9 @@ def summaries_1_2(wb, analytes, headerList, searchList):
             for index, col in enumerate(iterable=workingSheet.iter_cols(
                     min_row=startRow + 2,
                     min_col=1, max_row=startRow + 2,
-                    max_col=len(headerList))):
+                    max_col=len(working_headerList))):
                 for cell in col:
-                    cell.value = headerList[index]
+                    cell.value = working_headerList[index]
                     cell.border = style['medium']
                     if i == 0:
                         length = len(as_text(cell.value)) + 2
@@ -125,9 +125,9 @@ def summaries_1_2(wb, analytes, headerList, searchList):
                     cell.border = style['medium_thin']
 
             for index, col in enumerate(iterable=workingSheet.iter_cols(
-                    min_col=2, max_col=len(headerList))):
-                feature = searchList[index]
-                values = get_items(ws1, i + 1, feature)
+                    min_col=2, max_col=len(working_headerList))):
+                feature = working_searchList[index]
+                values = get_items(ws1, i + 1, feature, max_row, max_col)
                 for index2, row in enumerate(iterable=workingSheet.iter_rows(
                         min_col=index + 2,
                         max_col=index + 2,
@@ -150,30 +150,30 @@ def prep_lists(analytes):
     searchList = []
     headerList = []
     sample_name_options = ['Sample', 'SampleName']
-    searchList[0] = [sample_name_options, 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
+    searchList.append([sample_name_options, 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
                      'Signal', 'RFUPercentCV', 'Gnr1Signal', 'Gnr2Signal', 'Gnr3Signal',
                      'RFU', 'Gnr1CalculatedConcentration',
                      'Gnr2CalculatedConcentration',
                      'Gnr3CalculatedConcentration', 'CalculatedConcentration',
-                     'CalculatedConcentrationPercentCV']
+                     'CalculatedConcentrationPercentCV'])
 
-    headerList[0] = ['Sample #', 'Sample Name', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
-                     'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
+    headerList.append(['Sample #', 'Sample Name', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
+                     'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV'])
 
     # Lists for Summary 2
-    searchList[1] = [sample_name_options, 'Gnr1CalculatedConcentration',
+    searchList.append([sample_name_options, 'Gnr1CalculatedConcentration',
                      'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration', 'CalculatedConcentration',
-                     'CalculatedConcentrationPercentCV']
+                     'CalculatedConcentrationPercentCV'])
 
-    headerList[1] = ['Sample #', 'Sample Name', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV']
+    headerList.append(['Sample #', 'Sample Name', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV'])
 
     # Lists for Summary 3
-    headerList[2] = (analytes[:])
+    headerList.append(analytes[:])
     headerList[2].insert(0, 'Sample')
 
-    headerList[3] = ['CalculatedConcentration', 'CurveCoefficientA',
+    headerList.append(['CalculatedConcentration', 'CurveCoefficientA',
                      'CurveCoefficientB', 'CurveCoefficientC', 'CurveCoefficientD',
-                     'CurveCoefficientG']
+                     'CurveCoefficientG'])
 
-    headerList[4] = ['Curve Coefficients', 'A', 'B', 'C', 'D', 'G']
+    headerList.append(['Curve Coefficients', 'A', 'B', 'C', 'D', 'G'])
     return headerList, searchList
