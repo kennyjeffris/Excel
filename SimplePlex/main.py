@@ -51,9 +51,15 @@ def get_file():
 
 def save_file(file, wb):
     newName = 'output.xlsx'
+    options = {}
+    options['defaultextension'] = ".xlsx"
+    options['filetypes'] = (('xlsx files', '*.xlsx'), ('all files', '*.*'))
+    #options['initialdir'] = ""
+    options['initialfile'] = newName
+    options['title'] = "Save as..."
 
-    dest_filename = asksaveasfilename(title='Save File.', filetypes=(('xlsx files', '*.xlsx'), ('all files', '*.*')),
-                                      initialfile=newName)
+    dest_filename = asksaveasfilename(**options)
+
     try:
         wb.save(filename=dest_filename)
     except PermissionError as e:
@@ -124,7 +130,8 @@ def format_file(wb, analytes):
             from four_by_16 import format
         elif num_samples == 36:
             from four_by_36 import format
-    return format(wb, analytes, max_row, max_col)
+    wb = format(wb, analytes, max_row, max_col)
+    return wb
 
 
 def get_num_samples(ws, analytes):

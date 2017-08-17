@@ -10,7 +10,6 @@ def format(wb, analytes, max_row, max_col):
     global style
     style = styles.get()
     headerlist, searchlist = prep_lists(analytes)
-    wb.create_sheet(title='Summary 2')
     wb = summaries_1_2(wb, analytes, headerlist, searchlist, max_row, max_col)
     wb = summary_3(wb, analytes, headerlist, searchlist)
     return wb
@@ -142,7 +141,67 @@ def summaries_1_2(wb, analytes, headerList, searchList, max_row, max_col):
     return wb
 
 
-def summary_3(wb, analytes):
+def summary_3(wb, analytes, headerLists, searchLists):
+    ws4 = wb.create_sheet(title='Summary 3')
+    ws4['A1'].value = headerList4[0]
+    for index, col in enumerate(iterable=ws4.iter_cols(
+            min_row=2,
+            min_col=1, max_row=2,
+            max_col=len(headerList3))):
+        for cell in col:
+            cell.value = headerList3[index]
+            cell.border = medium
+
+    for index, row in enumerate(iterable=ws4.iter_rows(
+            min_row=3,
+            max_col=1, max_row=18)):
+        for cell in row:
+            cell.value = index + 1
+            cell.border = medium_thinbottom
+
+    for index, col in enumerate(iterable=ws4.iter_cols(
+            min_col=2, max_col=len(headerList3),
+            min_row=3, max_row=18)):
+
+        values = get_items(ws1, index + 1, headerList4[0])
+        for index2, row in enumerate(iterable=ws4.iter_rows(
+                min_col=index + 2,
+                max_col=index + 2,
+                min_row=3,
+                max_row=18)):
+            for cell in row:
+                cell.value = values[index2]
+                if cell.value == 'ND':
+                    cell.fill = red_fill
+                cell.alignment = right_center
+                cell.border = thin
+
+    ws4['A20'].value = headerList5[0]
+    ws4['A21'].border = medium
+    for index, col in enumerate(iterable=ws4.iter_cols(min_row=21,
+                                                       min_col=2, max_row=21, max_col=5)):
+        for cell in col:
+            cell.value = headerList3[index + 1]
+            cell.border = medium
+
+    for index, row in enumerate(iterable=ws4.iter_rows(min_row=22, max_row=26,
+                                                       min_col=1, max_col=1)):
+        for cell in row:
+            cell.value = headerList5[index + 1]
+            cell.border = medium_thinbottom
+
+    for index, col in enumerate(iterable=ws4.iter_cols(
+            min_col=2, max_col=len(headerList3),
+            min_row=22, max_row=26)):
+
+        for index2, row in enumerate(iterable=ws4.iter_rows(
+                min_col=index + 2,
+                min_row=22,
+                max_row=26)):
+            values = get_items(ws1, index + 1, headerList4[index2 + 1])
+            for cell in row:
+                cell.value = values[0]
+                cell.border = thin
     return wb
 
 def prep_lists(analytes):
