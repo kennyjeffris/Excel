@@ -5,6 +5,7 @@ import csv
 import tkinter as tk
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
+from os.path import splitext
 
 ##############################
 # Global variables
@@ -16,12 +17,12 @@ num_samples = 0
 
 
 def main():
-    file = get_file()
+    file, filename = get_file()
     wb = Workbook()
     wb = init_raw_data(file, wb)
     analytes = get_analytes(wb)
     wb = format_file(wb, analytes)
-    save_file(file, wb)
+    save_file(file, wb, filename)
 
 
 def get_file():
@@ -46,11 +47,11 @@ def get_file():
                                  title="Failure")
 
     file = open(filename)
-    return file
+    return file, filename
 
 
-def save_file(file, wb):
-    newName = 'output.xlsx'
+def save_file(file, wb, filename):
+    newName = splitext(filename)[0]
     options = {}
     options['defaultextension'] = ".xlsx"
     options['filetypes'] = (('xlsx files', '*.xlsx'), ('all files', '*.*'))

@@ -2,7 +2,7 @@ import styles
 from tkinter import messagebox
 from openpyxl.utils import get_column_letter
 from sys import exit
-from func import poly_fit, as_text
+from func import poly_fit, as_text, prep_lists
 from openpyxl.chart import ScatterChart, Reference, Series, marker
 from openpyxl.drawing.fill import ColorChoice
 ###########################################
@@ -286,36 +286,3 @@ def summary_3(wb, analytes, headerLists, searchLists, max_row, max_col):
         chart.series.append(series)
         ws4.add_chart(chart, 'H{}'.format((index * 15) + 1))
     return wb
-
-def prep_lists(analytes):
-    # Define lists as global
-    searchList = []
-    headerList = []
-    sample_name_options = ['Sample', 'SampleName']
-    searchList.append([sample_name_options, 'Gnr1Background', 'Gnr1RFU', 'Gnr2RFU', 'Gnr3RFU',
-                     'Signal', 'RFUPercentCV', 'Gnr1Signal', 'Gnr2Signal', 'Gnr3Signal',
-                     'RFU', 'Gnr1CalculatedConcentration',
-                     'Gnr2CalculatedConcentration',
-                     'Gnr3CalculatedConcentration', 'CalculatedConcentration',
-                     'CalculatedConcentrationPercentCV'])
-
-    headerList.append(['Sample #', 'Sample Name', 'Bkgd', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV', 'Gnr1', 'Gnr2',
-                     'Gnr3', 'Avg', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV'])
-
-    # Lists for Summary 2
-    searchList.append([sample_name_options, 'Gnr1CalculatedConcentration',
-                     'Gnr2CalculatedConcentration', 'Gnr3CalculatedConcentration', 'CalculatedConcentration',
-                     'CalculatedConcentrationPercentCV'])
-
-    headerList.append(['Sample #', 'Sample Name', 'Gnr1', 'Gnr2', 'Gnr3', 'Avg', '% CV'])
-
-    # Lists for Summary 3
-    headerList.append(analytes[:])
-    headerList[2].insert(0, 'Sample')
-
-    headerList.append(['CalculatedConcentration', 'CurveCoefficientA',
-                     'CurveCoefficientB', 'CurveCoefficientC', 'CurveCoefficientD',
-                     'CurveCoefficientG'])
-
-    headerList.append(['Curve Coefficients', 'A', 'B', 'C', 'D', 'G'])
-    return headerList, searchList
