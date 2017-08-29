@@ -5,7 +5,7 @@ import csv
 import tkinter as tk
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
-from os.path import splitext
+from os.path import basename, splitext
 
 ##############################
 # Global variables
@@ -51,7 +51,7 @@ def get_file():
 
 
 def save_file(file, wb, filename):
-    newName = splitext(filename)[0]
+    newName = splitext(basename(filename))[0]
     options = {}
     options['defaultextension'] = ".xlsx"
     options['filetypes'] = (('xlsx files', '*.xlsx'), ('all files', '*.*'))

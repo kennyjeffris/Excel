@@ -11,7 +11,7 @@ def format(wb, analytes, max_row, max_col):
     style = styles.get()
     headerlist, searchlist = prep_lists(analytes)
     wb = summaries_1_2(wb, analytes, headerlist, searchlist, max_row, max_col)
-    wb = summary_3(wb, analytes, headerlist, searchlist, max_row, max_col)
+    #wb = summary_3(wb, analytes, headerlist, searchlist, max_row, max_col)
     return wb
 
 
@@ -71,40 +71,40 @@ def summaries_1_2(wb, analytes, headerList, searchList, max_row, max_col):
         analyteString = analytes[0]
         workingSheet['A{}'.format(startRow)] = analyteString
         if page == 1:
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=3, end_row=startRow + 1, end_column=8)
-            cell = workingSheet['C{}'.format(startRow + 1)]
+            workingSheet.merge_cells(start_row=2, start_column=3, end_row=2, end_column=8)
+            cell = workingSheet['C{}'.format(2)]
             cell.value = 'RFU'
             cell.alignment = style['center_center']
             cell.fill = style['yellow_fill']
 
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=9, end_row=startRow + 1, end_column=12)
-            cell = workingSheet['I{}'.format(startRow + 1)]
+            workingSheet.merge_cells(start_row=2, start_column=9, end_row=2, end_column=12)
+            cell = workingSheet['I{}'.format(2)]
             cell.value = 'RFU-Bkgd'
             cell.alignment = style['center_center']
             cell.fill = style['yellow_fill']
 
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=13, end_row=startRow + 1, end_column=17)
-            cell = workingSheet['M{}'.format(startRow + 1)]
+            workingSheet.merge_cells(start_row=2, start_column=13, end_row=2, end_column=17)
+            cell = workingSheet['M{}'.format(2)]
             cell.value = 'Calculated Concentration'
             cell.alignment = style['center_center']
             cell.fill = style['yellow_fill']
-        for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow + 1, max_row=startRow + 1,
+        for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=2, max_row=2,
                                                                     min_col=3, max_col=17)):
             for cell in col:
                 cell.border = style['medium_thin']
         else:
-            workingSheet.merge_cells(start_row=startRow + 1, start_column=3, end_row=startRow + 1, end_column=7)
-            cell = workingSheet['C{}'.format(startRow + 1)]
-            cell.value = 'Calculated Concentration'
-            cell.alignment = style['center_center']
-            cell.fill = style['yellow_fill']
-            for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=startRow + 1, max_row=startRow + 1,
+            for index, col in enumerate(iterable=workingSheet.iter_cols(min_row=2, max_row=2,
                                                                         min_col=3, max_col=7)):
                 for cell in col:
                     cell.border = style['medium_thin']
+            workingSheet.merge_cells(start_row=2, start_column=3, end_row=2, end_column=7)
+            cell = workingSheet['C{}'.format(2)]
+            cell.value = 'Calculated Concentration'
+            cell.alignment = style['center_center']
+            cell.fill = style['yellow_fill']
         for index, col in enumerate(iterable=workingSheet.iter_cols(
-                min_row=startRow + 2,
-                min_col=1, max_row=startRow + 2,
+                min_row=3,
+                min_col=1, max_row=3,
                 max_col=len(working_headerList))):
             for cell in col:
                 cell.value = working_headerList[index]
