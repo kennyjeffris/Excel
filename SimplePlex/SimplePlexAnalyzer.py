@@ -64,9 +64,13 @@ medium_thinbottom = Border(left=Side(style='medium'),
 center_center = Alignment(horizontal='center', vertical='center')
 
 right_center = Alignment(horizontal='right', vertical='center')
-
+# Colors
+light_blue = '95B3D7'
+red = 'FF5050'
+# Highlight colors
 yellow_fill = PatternFill('solid', fgColor=colors.YELLOW)
-red_fill = PatternFill('solid', fgColor=colors.RED)
+red_fill = PatternFill('solid', fgColor=red)
+light_blue_fill = PatternFill('solid', fgColor=light_blue)
 ##############################################
 # Helper functions
 
@@ -178,6 +182,74 @@ except ValueError as error:
     messagebox.showerror(message="Missing Analyte Names.  Please export your data with "
                                  "this item included", title="Failure")
     sys.exit()
+
+
+
+# Run this file for 4x16 format.
+
+# Helper functions
+
+
+def col2num(colindex):
+    """Convert excel column letter to index number."""
+    number = 0
+    for c in colindex:
+        if c in string.ascii_letters:
+            number = number * 26 + (ord(c.upper()) - ord('A')) + 1
+    return number
+
+
+def get_items(sheet, analyte, data):
+    """Get the items in a column of a request sheet."""
+    try:
+        done = False
+        count = 1
+        while not done:
+            letter = get_column_letter(count)
+            ind = letter + '1'
+            # Check for instances where variable names change and a list of options are available.
+            if isinstance(data, (list, tuple)):
+                iter_length = len(data)
+            else:
+                iter_length = 1
+            for x in range(0, iter_length):
+                if iter_length == 1:
+                    obj = data
+                else:
+                    obj = data[x]
+
+                if obj == sheet[ind].value:
+                    item = []
+                    for l in range(analyte, max_row, 4):
+                        ind = letter + str(l + 1)
+                        cell = sheet[ind]
+                        try:
+                            if cell.value.isspace() or cell.value == '' or cell.value is None or cell.value == "NaN":
+                                item.append("ND")
+                            else:
+                                item.append(float(cell.value))
+                        except Exception:
+                            item.append(cell.value)
+                    return item
+            count += 1
+            if count > max_col:
+                raise ValueError('Item not found')
+    except ValueError as error:
+        messagebox.showerror(message="Missing item {}.  Please export your data with "
+                             "this item included".format(feature), title="Failure")
+        sys.exit()
+
+
+def as_text(value):
+    """Return the input as a string."""
+    if value is None:
+        return ""
+    return str(value)
+
+
+def poly_fit(x, coefficients):
+    return (coefficients[3] + (coefficients[0] - coefficients[3]) /
+            ((1 + (x / coefficients[2]) ** coefficients[1]) ** coefficients[4]))
 
 
 # Lists for Summary 1

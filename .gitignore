@@ -1,8 +1,10 @@
 *.xls
 *.xlsx
-*.dll
 *.build
 .idea/*
 *.spec
 /build/
 *.csv
+SimplePlex/__pycache__/*
+.DS_Store
+*/.DS_Store
