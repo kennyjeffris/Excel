@@ -3,8 +3,8 @@ import os
 import sys
 # Dependencies are automatically detected, but it might need
 # fine tuning.
-os.environ['TCL_LIBRARY'] = r'C:\Python\Python36\tcl\tcl8.6'
-os.environ['TK_LIBRARY'] = r'C:\Python\Python36\tcl\tk8.6'
+os.environ['TCL_LIBRARY'] = r'C:\Users\Kenny Jeffris\AppData\Local\Programs\Python\Python36\tcl\tcl8.6'
+os.environ['TK_LIBRARY'] = r'C:\Users\Kenny Jeffris\AppData\Local\Programs\Python\Python36\tcl\tk8.6'
 
 Include_Modules = [
     "numpy", "numpy.lib.format"
@@ -22,11 +22,11 @@ buildOptions = {"includes": Include_Modules, "include_files": ["compile_dependen
 base = 'Win32GUI' if sys.platform == 'win32' else None
 
 executables = [
-    Executable('SimplePlexAnalyzer.py', base=base, icon="proteinsimple_logo_bt.ico")
+    Executable('SimplePlex/SimplePlexAnalyzer.py', base=base, icon="proteinsimple_logo_bt.ico")
 ]
 
 setup(name='Simple Plex Analyzer',
-      version='1.0.1',
+      version='1.0.2',
       description='Data organizer for Simple Plex output.',
       options=dict(build_exe=buildOptions),
       executables=executables)
