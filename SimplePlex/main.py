@@ -124,12 +124,13 @@ def get_analytes(wb):
 
 
 def format_file(wb, analytes):
+    num_samples = get_num_samples(wb, analytes)
     if len(analytes) == 1:
         from one_by_72 import format
     else:
         if num_samples == 16:
             from four_by_16 import format
-        elif num_samples == 36:
+        elif num_samples == 32:
             from four_by_36 import format
     wb = format(wb, analytes, max_row, max_col)
     return wb
