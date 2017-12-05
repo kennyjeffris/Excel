@@ -27,7 +27,7 @@ executables = [
 ]
 
 setup(name='Simple Plex Analyzer',
-      version='1.0.2',
+      version='1.0.3',
       description='Data organizer for Simple Plex output.',
       options=dict(build_exe=buildOptions),
       executables=executables)
